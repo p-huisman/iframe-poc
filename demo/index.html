@@ -7,13 +7,12 @@
   </head>
   <body>
     <script src="../dist/p-data-channel.js" defer></script>
-
     <script>
       customElements.whenDefined("p-data-channel").then(function () {
         const dataChannel = customElements.get("p-data-channel");
         dataChannel
           .init({
-            tokenUrl: "http://localhost:9000/mijnomgeving/token",
+            tokenUrl: "http://localhost:9000/token",
             tokenAuthorization: "MyBearerToken",
             dataChannelUrl: "http://localhost:9001/data-channel",
           })

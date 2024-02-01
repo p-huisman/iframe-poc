@@ -35,7 +35,32 @@ const decodeToken = (token) => {
 const app = express({strict: false});
 
 app.get("/data-channel", (req, res) => {
-  res.sendFile(path.resolve("./scripts/api/channel.html"));
+  res.send(`
+<html>
+    <head>
+        <script>
+            window.addEventListener("message", async (event) => {
+                if (event.origin !== "http://localhost:9000") {
+                    return;
+                }
+                let response = await fetch(event.data.input, event.data.init).catch(e => e);
+                const status = response.status;
+
+                response = await response.json().catch(e => e);
+                if (response instanceof Error) {
+                    response = {
+                        status,
+                        error: response.message,
+                        stack: response.stack
+                    };
+                }
+                event.ports[0].postMessage({status, response});
+            });
+        </script>
+    </head>
+    <body>
+    </body>
+</html>`);
 });
 
 app.get("/data-sample-request", (req, res) => {

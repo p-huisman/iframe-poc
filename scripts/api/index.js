@@ -15,7 +15,7 @@ const publicKey = crypto.createPublicKey(publicPem);
 module.exports = (app) => {
   app.use(bodyParser.json());
 
-  app.get("/mijnomgeving/token", (req, res) => {
+  app.get("/token", (req, res) => {
     const data = JSON.stringify({"bsn": "1234567890"});
     const encryptedData = crypto.publicEncrypt(
       {
