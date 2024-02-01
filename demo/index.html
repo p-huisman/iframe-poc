@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>p-data-channel</title>
+  </head>
+  <body>
+    <script src="../dist/p-data-channel.js" defer></script>
+
+    <script>
+      customElements.whenDefined("p-data-channel").then(function () {
+        const dataChannel = customElements.get("p-data-channel");
+        dataChannel
+          .init({
+            tokenUrl: "http://localhost:9000/mijnomgeving/token",
+            tokenAuthorization: "MyBearerToken",
+            dataChannelUrl: "http://localhost:9001/data-channel",
+          })
+          .then(function () {
+            dataChannel.fetch("http://localhost:9001/data-sample-request").then(function (response) {
+              console.log(response);
+            });
+          });
+      });
+    </script>
+  </body>
+</html>
