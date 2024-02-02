@@ -5,8 +5,9 @@ export interface DataChannelInit {
 }
 
 export class PDataChannelElement extends HTMLElement {
-
-  static initDone: Promise<void> = new Promise(resolve =>  PDataChannelElement.initResolve = resolve);
+  static initDone: Promise<void> = new Promise(
+    (resolve) => (PDataChannelElement.initResolve = resolve),
+  );
 
   static initResolve: () => void;
 
@@ -57,10 +58,10 @@ export class PDataChannelElement extends HTMLElement {
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
       channel.port1.onmessage = (event: MessageEvent) => {
-        if (event.data.data.error) {
-          reject(new Error(event.data.data.error));
+        if (event.data.response.error) {
+          reject(new Error(event.data.response.error));
         } else {
-          resolve(event.data);
+          resolve(event.data.response.data);
         }
         channel.port1.close();
       };

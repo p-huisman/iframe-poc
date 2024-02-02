@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>p-data-channel</title>
   </head>
   <body>
@@ -16,42 +17,51 @@
     <p id="PostError"></p>
     <div id="PostsData"></div>
     <script>
+      (async function () {
+        // wait for the custom element to be defined
+        await customElements.whenDefined("p-data-channel");
+        const dataChannel = customElements.get("p-data-channel");
 
-        (async function() {
-            await customElements.whenDefined("p-data-channel");
-            const dataChannel = customElements.get("p-data-channel");
+        // init the data channel
+        dataChannel.init({
+          tokenUrl: "/token",
+          tokenAuthorization: "MyBearerToken",
+          dataChannelUrl: "http://localhost:9001/data-channel",
+        });
 
-            dataChannel.init({
-                tokenUrl: "http://localhost:9000/token",
-                tokenAuthorization: "MyBearerToken",
-                dataChannelUrl: "http://localhost:9001/data-channel",
-            });
-            document.querySelector("button").addEventListener("click", async () => {
-                const response = await dataChannel.fetch("/data-sample-request-2").catch((error) => {
-                    renderError(error);
-                })
-                renderPosts(response.data ? response.data : []);
-            });
-            const data = await dataChannel.fetch("/data-sample-request");
-            document.getElementById("SampleResponse").innerText = JSON.stringify(data, null, 2);
-        })();
-        function renderPosts(data) {
-            const postsData = document.getElementById("PostsData");
-            postsData.innerHTML = "";
-            data.forEach((post) => {
-                const postElement = document.createElement("div");
-                postElement.innerHTML = `
+        // handle button click
+        document.querySelector("button").addEventListener("click", async () => {
+          const data = await dataChannel.fetch("/data-sample-request-2").catch((error) => {
+            renderError(error);
+          });
+          renderPosts(data ? data : []);
+        });
+
+        // request some data through the data channel
+        const data = await dataChannel.fetch("/data-sample-request").catch((e) => e);
+        if (data instanceof Error) {
+          document.getElementById("SampleResponse").innerText = data.message;
+        } else {
+          document.getElementById("SampleResponse").innerText = JSON.stringify(data, null, 2);
+        }
+      })();
+
+      function renderPosts(data) {
+        const postsData = document.getElementById("PostsData");
+        postsData.innerHTML = "";
+        data.forEach((post) => {
+          const postElement = document.createElement("div");
+          postElement.innerHTML = `
                     <h2>${post.title}</h2>
                     <p>${post.body}</p>
                 `;
-                postsData.appendChild(postElement);
-            });
-        }
+          postsData.appendChild(postElement);
+        });
+      }
 
-        function renderError(error) {
-            document.getElementById("PostError").innerText = error.message;
-        }
-
+      function renderError(error) {
+        document.getElementById("PostError").innerText = error.message;
+      }
     </script>
   </body>
 </html>
