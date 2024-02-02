@@ -5,6 +5,11 @@ export interface DataChannelInit {
 }
 
 export class PDataChannelElement extends HTMLElement {
+
+  static initDone: Promise<void> = new Promise(resolve =>  PDataChannelElement.initResolve = resolve);
+
+  static initResolve: () => void;
+
   static #iframeElement: HTMLIFrameElement;
 
   static #remoteFetchToken: string;
@@ -26,7 +31,8 @@ export class PDataChannelElement extends HTMLElement {
     if (!PDataChannelElement.#iframeElement) {
       return new Promise((resolve, reject) => {
         PDataChannelElement.#iframeElement = document.createElement("iframe");
-        PDataChannelElement.#iframeElement.onload = function (e) {
+        PDataChannelElement.#iframeElement.onload = function () {
+          PDataChannelElement.initResolve();
           resolve();
         };
         PDataChannelElement.#iframeElement.onerror = function () {
@@ -43,6 +49,7 @@ export class PDataChannelElement extends HTMLElement {
     input: URL | RequestInfo,
     init?: RequestInit,
   ): Promise<T> {
+    await PDataChannelElement.initDone;
     init = init || {};
     init.headers = init.headers || ({} as Headers);
     (init.headers as any)["X-Remote-Fetch-Token"] =
@@ -50,8 +57,8 @@ export class PDataChannelElement extends HTMLElement {
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
       channel.port1.onmessage = (event: MessageEvent) => {
-        if (event.data.response.error) {
-          reject(new Error(event.data.response.error));
+        if (event.data.data.error) {
+          reject(new Error(event.data.data.error));
         } else {
           resolve(event.data);
         }

@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const bodyParser = require("body-parser");
 const crypto = require("crypto");
 
@@ -16,7 +17,8 @@ module.exports = (app) => {
   app.use(bodyParser.json());
 
   app.get("/token", (req, res) => {
-    const data = JSON.stringify({"bsn": "1234567890"});
+    const data = fs.readFileSync('./scripts/api/token.json', 'utf8');
+    // const data = JSON.stringify({"bsn": "1234567890"});
     const encryptedData = crypto.publicEncrypt(
       {
         key: publicKey,

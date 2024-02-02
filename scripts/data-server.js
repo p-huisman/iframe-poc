@@ -54,7 +54,7 @@ app.get("/data-channel", (req, res) => {
                         stack: response.stack
                     };
                 }
-                event.ports[0].postMessage({status, response});
+                event.ports[0].postMessage({status, data: response});
             });
         </script>
     </head>
@@ -66,6 +66,18 @@ app.get("/data-channel", (req, res) => {
 app.get("/data-sample-request", (req, res) => {
   const token = decodeToken(req.headers["x-remote-fetch-token"]);
   res.json({message: "Hello " + token.bsn});
+});
+
+app.get("/data-sample-request-2", async (req, res) => {
+  // turn off certificate validation (self signed certificate in chain)
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+  const token = decodeToken(req.headers["x-remote-fetch-token"]);
+  if (token.bsn !== "1234567890") {
+    return res.status(401).json({error: "Unauthorized"});
+  }
+  let data = await fetch("https://jsonplaceholder.typicode.com/posts").catch(e => e);
+  data = await data.json().catch(e => e);
+  res.json(data);
 });
 
 app.listen("9001", () => {
