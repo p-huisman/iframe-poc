@@ -14,10 +14,16 @@
 
     <script src="../dist/p-data-channel.js" defer></script>
     <script>
+      // wait for the DOM to be loaded
       document.addEventListener("DOMContentLoaded", function () {
+        // just fetch // for now only json is supported
         fetch("http://localhost:9001/api/data-sample-request")
           .then((response) => response.json())
           .then((data) => console.log(data));
+
+        fetch("http://localhost:9001/api/data-sample-request-not-existing")
+          .then((data) => data)
+          .catch((e) => console.log(e));
       });
     </script>
   </body>

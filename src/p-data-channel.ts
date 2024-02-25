@@ -55,14 +55,10 @@ export class PDataChannelElement extends HTMLElement {
   #handleMessage = async (event: MessageEvent) => {
     await this.#ready;
     if (event.data.type === "fetch") {
-      const result = await this.iframeFetch(
-        event.data.url,
-        event.data.init,
-      ).catch((e) => e);
+      const result = await this.iframeFetch(event.data.url, event.data.init);
 
       event.ports[0].postMessage({
         result,
-        error: result instanceof Error ? result.message : null,
       });
     }
   };
@@ -98,13 +94,11 @@ export class PDataChannelElement extends HTMLElement {
     init?: RequestInit,
   ): Promise<T> {
     await this.#ready;
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const channel = new MessageChannel();
       channel.port1.onmessage = (event: MessageEvent) => {
-        if (event.data.response.error) {
-          reject(new Error(event.data.response.error));
-        } else {
-          resolve(event.data.response.data);
+        if (event.data.response) {
+          resolve(event.data.response);
         }
         channel.port1.close();
       };

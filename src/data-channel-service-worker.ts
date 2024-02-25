@@ -72,12 +72,16 @@ async function fetchInIframe(
   return new Promise((resolve) => {
     const messageChannel = new MessageChannel();
     messageChannel.port1.onmessage = (event: MessageEvent) => {
-      if (event.data.error) {
-        resolve(new Response(event.data.error, {status: 500}));
+      if (event.data.result.error) {
+        resolve(
+          new Response(event.data.result.message, {
+            status: event.data.result.status,
+          }),
+        );
       } else {
         resolve(
-          new Response(JSON.stringify(event.data.result), {
-            status: 200,
+          new Response(JSON.stringify(event.data.result.data), {
+            status: event.data.result.status,
             headers: {"Content-Type": "application/json"},
           }),
         );
