@@ -9,9 +9,13 @@
   "types": "./types/p-component.d.ts",
   "scripts": {
     "clean": "rimraf ./dist && rimraf ./types",
-    "build": "npm run clean && cross-env NODE_ENV=production node scripts/build.js && npm run build:types",
+    "build:component": "cross-env NODE_ENV=production node scripts/build.js",
+    "build:serviceWorker": "esbuild src/data-channel-service-worker.ts --bundle --minify --target=es6 --outfile=dist/data-channel-service-worker.js",
+    "build": "npm run clean && npm run build:serviceWorker && npm run build:component && npm run build:types",
     "build:types": "tsc -d -t es2020 --moduleResolution node --declarationDir types --emitDeclarationOnly",
-    "develop": "concurrently \"node scripts/data-server.js\" \"node scripts/build.js\"",
+    "develop:component": "cross-env NODE_ENV=development node scripts/build.js",
+    "develop:serviceWorker": "esbuild src/data-channel-service-worker.ts --bundle --watch --sourcemap --target=es6 --outfile=dist/data-channel-service-worker.js",
+    "develop": "concurrently \"node scripts/data-server.js\" \"npm run develop:serviceWorker\" \"npm run develop:component\"",
     "lint": "eslint --fix --ext ts --ext tsx ./src",
     "prepare": "husky",
     "test": "cross-env NODE_ENV=test karma start karma.conf.js --single-run",
@@ -22,7 +26,6 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "@chiragrupani/karma-chromium-edge-launcher": "^2.3.1",
-    "@pggm/test-helpers": "^1.0.1",
     "@types/jasmine": "^5.1.4",
     "@types/karma": "^6.3.8",
     "@typescript-eslint/eslint-plugin": "^6.20.0",

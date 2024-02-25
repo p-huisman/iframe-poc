@@ -59,12 +59,12 @@ app.get("/data-channel", (req, res) => {
 </html>`);
 });
 
-app.get("/data-sample-request", (req, res) => {
+app.get("/api/data-sample-request", (req, res) => {
   const token = decodeToken(req.headers["x-remote-fetch-token"]);
   res.json({message: "Hello " + token.bsn});
 });
 
-app.get("/data-sample-request-2", async (req, res) => {
+app.get("/api/data-sample-request-2", async (req, res) => {
   // turn off certificate validation (self signed certificate in chain)
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
   const token = decodeToken(req.headers["x-remote-fetch-token"]);

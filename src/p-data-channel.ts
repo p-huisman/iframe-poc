@@ -1,60 +1,103 @@
+import {startFetchQueuing, stopFetchQueuing} from "./fetch-queue";
+
 export interface DataChannelInit {
   tokenUrl: string;
   tokenAuthorization: string;
   dataChannelUrl: string;
 }
 
+startFetchQueuing();
+
 export class PDataChannelElement extends HTMLElement {
-  static initDone: Promise<void> = new Promise(
-    (resolve) => (PDataChannelElement.initResolve = resolve),
-  );
+  constructor() {
+    super();
 
-  static initResolve: () => void;
+    this.#ready = Promise.all([
+      new Promise<void>((resolve) => {
+        navigator.serviceWorker.addEventListener(
+          "message",
+          (event: MessageEvent) => {
+            if (event.data.type === "init") {
+              stopFetchQueuing();
+              resolve();
+            } else {
+              this.#handleMessage(event);
+            }
+          },
+        );
+      }),
+      this.#initIframe(),
+    ]);
 
-  static #iframeElement: HTMLIFrameElement;
-
-  static #remoteFetchToken: string;
-
-  static async init(init: DataChannelInit): Promise<void> {
-    const response = await fetch(init.tokenUrl, {
-      headers: {
-        Authorization: `Bearer ${init.tokenAuthorization}`,
-      },
-    })
-      .then((r) => r.json())
-      .catch((e) => e);
-
-    if (response instanceof Error) {
-      return Promise.reject(response);
-    }
-    PDataChannelElement.#remoteFetchToken = response.token;
-
-    if (!PDataChannelElement.#iframeElement) {
-      return new Promise((resolve, reject) => {
-        PDataChannelElement.#iframeElement = document.createElement("iframe");
-        PDataChannelElement.#iframeElement.onload = function () {
-          PDataChannelElement.initResolve();
-          resolve();
-        };
-        PDataChannelElement.#iframeElement.onerror = function () {
-          reject();
-        };
-        PDataChannelElement.#iframeElement.style.display = "none";
-        document.body.appendChild(PDataChannelElement.#iframeElement);
-        PDataChannelElement.#iframeElement.src = init.dataChannelUrl;
-      });
+    const serviceWorkerUrl = this.getAttribute("service-worker");
+    if (serviceWorkerUrl) {
+      navigator.serviceWorker
+        .register(serviceWorkerUrl, {scope: document.location.pathname})
+        .then((sw) => {
+          this.#serviceWorkerRegistration = sw;
+          this.#serviceWorkerRegistrationActive.then(() => {
+            sw.active.postMessage({
+              type: "init",
+              tokenUrl: this.getAttribute("token-url"),
+              pattern: this.getAttribute("pattern"),
+            });
+          });
+        });
     }
   }
 
-  static async fetch<T>(
+  #ready;
+
+  #iframeElement: HTMLIFrameElement;
+
+  #serviceWorkerRegistration: ServiceWorkerRegistration;
+
+  #handleMessage = async (event: MessageEvent) => {
+    await this.#ready;
+    if (event.data.type === "fetch") {
+      const result = await this.iframeFetch(
+        event.data.url,
+        event.data.init,
+      ).catch((e) => e);
+
+      event.ports[0].postMessage({
+        result,
+        error: result instanceof Error ? result.message : null,
+      });
+    }
+  };
+
+  #initIframe = async (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      this.#iframeElement = document.createElement("iframe");
+      this.#iframeElement.onload = function () {
+        resolve();
+      };
+      this.#iframeElement.onerror = function () {
+        reject();
+      };
+      this.#iframeElement.style.display = "none";
+      document.body.appendChild(this.#iframeElement);
+      this.#iframeElement.src = this.getAttribute("data-channel-url");
+    });
+  };
+
+  get #serviceWorkerRegistrationActive(): Promise<void> {
+    return new Promise((resolve) => {
+      const interval = setInterval(() => {
+        if (this.#serviceWorkerRegistration?.active) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 100);
+    });
+  }
+
+  async iframeFetch<T>(
     input: URL | RequestInfo,
     init?: RequestInit,
   ): Promise<T> {
-    await PDataChannelElement.initDone;
-    init = init || {};
-    init.headers = init.headers || ({} as Headers);
-    (init.headers as any)["X-Remote-Fetch-Token"] =
-      PDataChannelElement.#remoteFetchToken;
+    await this.#ready;
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
       channel.port1.onmessage = (event: MessageEvent) => {
@@ -65,9 +108,9 @@ export class PDataChannelElement extends HTMLElement {
         }
         channel.port1.close();
       };
-      PDataChannelElement.#iframeElement.contentWindow.postMessage(
+      this.#iframeElement.contentWindow.postMessage(
         {input, init},
-        new URL(PDataChannelElement.#iframeElement.src).origin,
+        new URL(this.#iframeElement.src).origin,
         [channel.port2],
       );
     });

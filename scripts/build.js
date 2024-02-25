@@ -40,10 +40,15 @@ if (isProduction) {
   const serverOptions = {host: "localhost", port: 9000};
   buildOptions.banner = {js: client()};
   const app = express({strict: false});
+  app.use((req, res, next) => {
+    res.set("Service-Worker-Allowed", "/");
+    next();
+  });
   require("./api/index")(app);
   log(`Start dev server http://${serverOptions.host}:${serverOptions.port}`);
   app.use(express.static("./"), serveIndex("./", {icons: true}));
   const server = createServer(app);
+
   const write = socketServer(server);
 
   buildOptions.plugins.push({

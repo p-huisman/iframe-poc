@@ -7,61 +7,18 @@
     <title>p-data-channel</title>
   </head>
   <body>
-    <script src="../dist/p-data-channel.js" defer></script>
-
     <h1>p-data-channel</h1>
-    <pre>/data-sample-request</pre>
-    <pre id="SampleResponse"></pre>
-    <hr />
-    <button>List posts</button>
-    <p id="PostError"></p>
-    <div id="PostsData"></div>
+
+    <p-data-channel service-worker="/dist/data-channel-service-worker.js" token-url="/token" data-channel-url="http://localhost:9001/data-channel" pattern="http://localhost:9001/api">
+    </p-data-channel>
+
+    <script src="../dist/p-data-channel.js" defer></script>
     <script>
-      (async function () {
-        // wait for the custom element to be defined
-        await customElements.whenDefined("p-data-channel");
-        const dataChannel = customElements.get("p-data-channel");
-
-        // init the data channel
-        dataChannel.init({
-          tokenUrl: "/token",
-          tokenAuthorization: "MyBearerToken",
-          dataChannelUrl: "http://localhost:9001/data-channel",
-        });
-
-        // handle button click
-        document.querySelector("button").addEventListener("click", async () => {
-          const data = await dataChannel.fetch("/data-sample-request-2").catch((error) => {
-            renderError(error);
-          });
-          renderPosts(data ? data : []);
-        });
-
-        // request some data through the data channel
-        const data = await dataChannel.fetch("/data-sample-request").catch((e) => e);
-        if (data instanceof Error) {
-          document.getElementById("SampleResponse").innerText = data.message;
-        } else {
-          document.getElementById("SampleResponse").innerText = JSON.stringify(data, null, 2);
-        }
-      })();
-
-      function renderPosts(data) {
-        const postsData = document.getElementById("PostsData");
-        postsData.innerHTML = "";
-        data.forEach((post) => {
-          const postElement = document.createElement("div");
-          postElement.innerHTML = `
-                    <h2>${post.title}</h2>
-                    <p>${post.body}</p>
-                `;
-          postsData.appendChild(postElement);
-        });
-      }
-
-      function renderError(error) {
-        document.getElementById("PostError").innerText = error.message;
-      }
+      document.addEventListener("DOMContentLoaded", function () {
+        fetch("http://localhost:9001/api/data-sample-request")
+          .then((response) => response.json())
+          .then((data) => console.log(data));
+      });
     </script>
   </body>
 </html>
