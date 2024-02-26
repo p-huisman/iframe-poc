@@ -1,29 +1,13 @@
-# `<p-data-channel>` element
+# `<p-iframe-fetch>` element
 
-`npm i`
+This web component installs a service worker.
+This service worker intercepts fetch requests.
+If a fetch URL matches the configured pattern, the service worker will get a token from the configured token-url. The token will be added to the `x-remote-fetch-token` request header. The service worker post a requests the web component to execute the request within an iframe. The result of the request is returned to the service worker.
+The fetch interceptor returns a response object
 
-`npm run develop`
-Er starten 2 web servers op:
+## Example
 
-1. localhost poort 9000 (scripts/build.js + scripts/api/index.js)
-
-Dit is de mijnomgeving de demo url = `http://localhost:9000`
-deze omgeving heeft een token end point `http://localhost:9000/token`, dit end point geeft een versleuteld json object terug `{bsn: "1234567890" }'
-
-De demo pagina doet een request via een iframe en stuurt een header met dit token mee.
-
-2. localhost poort 9001 (scripts/data-server.js)
-
-Dit is waar de data wordt opgevraagd, in deze demo verloopt de communicatie via een iframe
-de url van de iframe = `http://localhost:9001/data-channel` het document in de iframe communiceert met het document waarin de iframe staat via [MessageChannel](https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel)
-
-De demo pagina op `http://localhost:9000/demo` doet een request via het iframe naar `http://localhost:9001/data-sample-request` dit end point geeft als resultaat
-
-```
-{
-  "message" : "Hello 1234567890" /* 1234567890 = bsn uit token */
-}
-```
+see `/demo/index.html` and `/scripts/data-server.js`
 
 ## Schema
 
@@ -57,6 +41,14 @@ page                      worker                  service       iframe          
 |                           |                        |           |                        |
 
 </pre>
+
+## Attributes
+
+| Name           | Description                                                              |
+| -------------- | ------------------------------------------------------------------------ |
+| service-worker | the src for the service worker eg `/dist/iframe-fetch-service-worker.js` |
+| token-url      | the url token endpoint                                                   |
+|                |                                                                          |
 
 ## Install npm packages
 
