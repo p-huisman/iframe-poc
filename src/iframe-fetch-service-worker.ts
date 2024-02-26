@@ -1,11 +1,11 @@
 export type {};
 
-interface DataChannelServiceWorkerGlobalScope extends ServiceWorkerGlobalScope {
+interface IframeFetchServiceWorkerGlobalScope extends ServiceWorkerGlobalScope {
   token: string | Error;
   pattern: string;
 }
 
-declare let self: DataChannelServiceWorkerGlobalScope;
+declare let self: IframeFetchServiceWorkerGlobalScope;
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -72,10 +72,12 @@ async function fetchInIframe(
   return new Promise((resolve) => {
     const messageChannel = new MessageChannel();
     messageChannel.port1.onmessage = (event: MessageEvent) => {
-      if (event.data.result.error) {
+      if (event.type === "fetchResponse" && event.data.result.error) {
+        console.error(event.data);
         resolve(
-          new Response(event.data.result.message, {
+          new Response(event.data.result, {
             status: event.data.result.status,
+            statusText: event.data.result.statusText,
           }),
         );
       } else {

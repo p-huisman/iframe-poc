@@ -1,28 +1,28 @@
 {
-  "name": "@pggm/p-data-channel",
+  "name": "@pggm/p-iframe-fetch",
   "version": "0.0.1",
-  "description": "Component description",
+  "description": "Fetch remote api data via an iframe",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/p-huisman/iframe-poc.git"
   },
-  "types": "./types/p-component.d.ts",
+  "types": "./types/iframe-fetch.d.ts",
   "scripts": {
     "clean": "rimraf ./dist && rimraf ./types",
     "build:component": "cross-env NODE_ENV=production node scripts/build.js",
-    "build:serviceWorker": "esbuild src/data-channel-service-worker.ts --bundle --minify --target=es6 --outfile=dist/data-channel-service-worker.js",
+    "build:serviceWorker": "esbuild src/iframe-fetch-service-worker.ts --bundle --minify --target=es6 --outfile=dist/iframe-fetch-service-worker.js",
     "build": "npm run clean && npm run build:serviceWorker && npm run build:component && npm run build:types",
     "build:types": "tsc -d -t es2020 --moduleResolution node --declarationDir types --emitDeclarationOnly",
     "develop:component": "cross-env NODE_ENV=development node scripts/build.js",
-    "develop:serviceWorker": "esbuild src/data-channel-service-worker.ts --bundle --watch --sourcemap --target=es6 --outfile=dist/data-channel-service-worker.js",
+    "develop:serviceWorker": "esbuild src/iframe-fetch-service-worker.ts --bundle --watch --sourcemap --target=es6 --outfile=dist/iframe-fetch-service-worker.js",
     "develop": "concurrently \"node scripts/data-server.js\" \"npm run develop:serviceWorker\" \"npm run develop:component\"",
     "lint": "eslint --fix --ext ts --ext tsx ./src",
     "prepare": "husky",
     "test": "cross-env NODE_ENV=test karma start karma.conf.js --single-run",
     "testdevelop": "cross-env NODE_ENV=test karma start karma.conf.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["fetch", "iframe", "post-message",  "message channel"],
+  "author": "Peter Huisman",
   "license": "UNLICENSED",
   "devDependencies": {
     "@chiragrupani/karma-chromium-edge-launcher": "^2.3.1",

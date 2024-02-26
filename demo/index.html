@@ -3,28 +3,66 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>p-data-channel</title>
+    <title>iframe fetch</title>
+    <style>
+      pre {
+        background-color: #f4f4f4;
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin: 10px 0;
+      }
+      .error {
+        color: red;
+      }
+    </style>
   </head>
   <body>
-    <h1>p-data-channel</h1>
+    <h1>iframe fetch</h1>
 
-    <p-data-channel service-worker="/dist/data-channel-service-worker.js" token-url="/token" data-channel-url="http://localhost:9001/data-channel" pattern="http://localhost:9001/api">
-    </p-data-channel>
+    <p-iframe-fetch service-worker="/dist/iframe-fetch-service-worker.js" token-url="/token" iframe-url="http://localhost:9001/data-channel" pattern="http://localhost:9001/api"> </p-iframe-fetch>
 
-    <script src="../dist/p-data-channel.js" defer></script>
+    <p><button id="FetchButton">Fetch</button></p>
+
+    <pre id="FetchOutput"></pre>
+
+    <script src="../dist/iframe-fetch.js" defer></script>
     <script>
+      document.getElementById("FetchButton").addEventListener("click", function () {
+        fetch("http://localhost:9001/api/data-sample-request-2")
+          .then((response) => prependOutput(response))
+          .catch((e) => prependOutput(e));
+      });
       // wait for the DOM to be loaded
       document.addEventListener("DOMContentLoaded", function () {
         // just fetch // for now only json is supported
         fetch("http://localhost:9001/api/data-sample-request")
-          .then((response) => response.json())
-          .then((data) => console.log(data));
+          .then((response) => prependOutput(response))
+          .catch((e) => prependOutput(e));
 
         fetch("http://localhost:9001/api/data-sample-request-not-existing")
-          .then((data) => data)
-          .catch((e) => console.log(e));
+          .then((response) => {
+            prependOutput(response);
+          })
+          .catch((e) => {
+            prependOutput(e);
+          });
       });
+
+      async function prependOutput(response) {
+        let logText;
+        if (response instanceof Error) {
+          logText = `<span class="error">${response.message}</span>`;
+        } else {
+          if (!response.ok) {
+            logText = `<span class="error">${response.status} ${response.statusText}</span>`;
+          } else {
+            response = await response.json();
+            logText = JSON.stringify(response, null, 2);
+          }
+        }
+        const output = document.getElementById("FetchOutput");
+        output.innerHTML = logText + "\r\n\r\n---\r\n\r\n" + output.innerHTML;
+      }
     </script>
   </body>
 </html>

@@ -1,14 +1,14 @@
 import {startFetchQueuing, stopFetchQueuing} from "./fetch-queue";
 
-export interface DataChannelInit {
+export interface IframeFetchInit {
   tokenUrl: string;
   tokenAuthorization: string;
-  dataChannelUrl: string;
+  iframeUrl: string;
 }
 
 startFetchQueuing();
 
-export class PDataChannelElement extends HTMLElement {
+export class PIframeFetchElement extends HTMLElement {
   constructor() {
     super();
 
@@ -55,9 +55,9 @@ export class PDataChannelElement extends HTMLElement {
   #handleMessage = async (event: MessageEvent) => {
     await this.#ready;
     if (event.data.type === "fetch") {
-      const result = await this.iframeFetch(event.data.url, event.data.init);
-
+      const result = await this.#iframeFetch(event.data.url, event.data.init);
       event.ports[0].postMessage({
+        type: "fetchResponse",
         result,
       });
     }
@@ -74,7 +74,7 @@ export class PDataChannelElement extends HTMLElement {
       };
       this.#iframeElement.style.display = "none";
       document.body.appendChild(this.#iframeElement);
-      this.#iframeElement.src = this.getAttribute("data-channel-url");
+      this.#iframeElement.src = this.getAttribute("iframe-url");
     });
   };
 
@@ -89,7 +89,7 @@ export class PDataChannelElement extends HTMLElement {
     });
   }
 
-  async iframeFetch<T>(
+  async #iframeFetch<T>(
     input: URL | RequestInfo,
     init?: RequestInit,
   ): Promise<T> {
@@ -111,6 +111,6 @@ export class PDataChannelElement extends HTMLElement {
   }
 }
 
-if (!customElements.get("p-data-channel")) {
-  customElements.define("p-data-channel", PDataChannelElement);
+if (!customElements.get("p-iframe-fetch")) {
+  customElements.define("p-iframe-fetch", PIframeFetchElement);
 }

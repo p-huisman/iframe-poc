@@ -14,7 +14,7 @@ function log(message) {
 }
 
 const buildOptions = {
-  entryPoints: ["src/p-data-channel.ts"],
+  entryPoints: ["src/iframe-fetch.ts"],
   bundle: true,
   target: "es6",
   outdir: "dist",
